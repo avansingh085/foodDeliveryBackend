@@ -1,7 +1,7 @@
 const mongoose=require('mongoose');
 const db=()=>{
     try{
-       mongoose.connect("mongodb+srv://avansingh085:SbhUyHjWETMpJWUN@cluster0.tyyrk.mongodb.net/Ecommerce")
+       mongoose.connect("mongodb+srv://avansingh085:SbhUyHjWETMpJWUN@cluster0.tyyrk.mongodb.net/fooddb")
          .then(() => console.log("MongoDB connected"))
          .catch(err => console.error("MongoDB connection error:", err));
     }
