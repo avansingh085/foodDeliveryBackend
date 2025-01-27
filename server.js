@@ -1,11 +1,14 @@
 const express = require("express");
 const multer = require("multer");
+require('dotenv').config();
 const path = require("path");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const app = express();
 const db=require('./database');
 db();
+const accountSid =process.env.ACCOUNT_SID;
+const authToken = process.env.AUTH_TOKEN;
 const twilio=require('twilio');
 const {profile,login,authenticateToken,addCart,updateCart,deleteCart,updateOrderStatus,updatePaymentHistory}=require('./controller');
 
@@ -14,8 +17,8 @@ app.use(cors());
 app.use(express.json());
 let otpStore={};
 //const users=require('./schema/userSchema.js');
-const accountSid = 'AC63caaf932b00a54c24ba4b92c8773476';
-const authToken = 'd7d9938a3da78c81deaea08fdd221cee';
+console.log(process.env.accountSid)
+
 const client = require('twilio')(accountSid,authToken);
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -72,7 +75,7 @@ app.post('/logout', (req, res) => {
       client.messages
           .create({
               body: `Your OTP is  ${otp}`,
-              messagingServiceSid:process.env.messagingServiceSid||'MG17f4a1bd1e1f8f81f5b87905d1ffae6f',
+              messagingServiceSid:process.env.MESSAGING_SERVICE_ID,
               to: phone,
           })
           .then(() => {
