@@ -10,7 +10,7 @@ db();
 const accountSid =process.env.ACCOUNT_SID;
 const authToken = process.env.AUTH_TOKEN;
 const twilio=require('twilio');
-const {profile,login,authenticateToken,addCart,updateCart,deleteCart,updateOrderStatus,updatePaymentHistory}=require('./controller');
+const {addReview,getFood,profile,login,authenticateToken,addCart,updateCart,deleteCart,addOrder,getOrder,addNewFood,getMenu,getCart}=require('./controller');
 
 const port = 5000;
 app.use(cors()); 
@@ -55,12 +55,17 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   res.status(200).json({ imageUrl });
 });
 app.use("/uploads", express.static("uploads"));
+app.get("/getMenu",getMenu);
+app.get("/getCart",authenticateToken,getCart);
 app.post("/addCart",addCart);
 app.post('/login',login);
+app.get("/food/:id",getFood);
 app.post("/updateCart",updateCart)
 app.post("/deleteCart",deleteCart);
-app.post("/updateOrderStatus",updateOrderStatus);
-app.post("/updatePaymentHistory",updatePaymentHistory);
+app.post("/addOrder",addOrder);
+app.post("/addReview",authenticateToken,upload.array('capturedImages', 5),addReview);
+app.get("/getOrder",authenticateToken,getOrder);
+app.post("/addNewFood",addNewFood);
 app.post('/logout', (req, res) => {
   res.status(200).json({ message: 'Logout successful' });
 });
@@ -88,6 +93,7 @@ app.post('/logout', (req, res) => {
              return res.status(500).send({ message: 'Failed to send OTP', error });
           });
   });
+
   
   app.post('/verify-otp', (req, res) => {
       const { phone, otp } = req.body;

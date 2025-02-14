@@ -1,28 +1,27 @@
 const dotenv = require('dotenv');
 dotenv.config();
 const mongoose=require('mongoose');
-const users=require('./schema/userSchema.js');
+const Users=require('./schema/Users.js');
+const Product=require('./schema/Product.js')
+const Orders=require('./schema/Orders.js');
+const Payment=require('./schema/Payment.js');
 const jwt = require('jsonwebtoken');
-
+const Reviews=require('./schema/Review.js');
 const login = async (req, res) => {
     const { mobile } = req.body;
-  console.log(mobile,"PPPPPPPPPPPPPPPPP")
     try {
        
         if (!mobile) {
             return res.status(400).json({ data: { message: 'Mobile number is required' } });
         }
 
-        let user = await users.findOne({ mobile });
+        let user = await Users.findOne({ mobile });
         if (!user) {
             
-            user = new users({ mobile });
+            user = new Users({ mobile });
             await user.save(); 
         }
-        console.log(user,"OPPPPPPPPPPPPPPPPPPPP")
-        
         const token = jwt.sign({ mobile }, process.env.SECRET_KEY, { expiresIn: '380h' });
-
        return res.status(200).json({ message: 'Login successful', token, user });
     } catch (err) {
         console.error('Error during login:', err);
@@ -30,6 +29,21 @@ const login = async (req, res) => {
     }
 };
 
+const addNewFood=async (req,res)=>{
+    try{
+       // console.log("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
+        let data=req.body;
+     
+      let newProduct=new Product(data);
+       await newProduct.save();
+      return res.status(200).send({message:"new product successfully added",success:true});
+    }
+    catch(err)
+    {
+       return res.status(501).send({message:"err occur during product insert"});
+
+    }
+}
 
 const authenticateToken=async (req, res, next)=> {
     const token = req.headers['authorization'];
@@ -46,7 +60,7 @@ const authenticateToken=async (req, res, next)=> {
 const profile = async (req, res) => {
     try {
     
-        const User = await users.findOne({ mobile: req.user.mobile }).lean(); 
+        const User = await Users.findOne({ mobile: req.user.mobile }).lean(); 
         if (!User) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
@@ -60,22 +74,43 @@ const profile = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
-const deleteCart=  async (req, res) => {
-    const { mobile, id } = req.body;
+const getFood=async (req,res)=>{
+    try{
+    let {id}=req.params;
+       console.log(id)
+       if(!id)
+        return res.status(500).send({message:"ivalid product id",success:false});
+       let isExist=await Product.findOne({_id:id}).populate('reviews');
+      
+       if(!isExist)
+       return res.status(400).send({message:"product not exist",success:false});
    
+        return res.status(200).send({message:"product item successfully fetched",success:true,item:isExist})
+    }catch(err)
+    {
+        console.log(err)
+        return res.status(501).send({message:"error occur during product fetch",success:false});
+    }
+}
+const deleteCart=  async (req, res) => {
+    let { mobile, id } = req.body;
+    id=id._id;
+  
     if (!mobile || !id) {
         return res.status(400).json({ message: 'Mobile number and item ID are required' });
     }
     try {
-        const user = await users.findOne({ mobile });
+        const user = await Users.findOne({ mobile });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-
-        user.cart = user.cart.filter((item)=>item.id!==id);
+        user.cart = user.cart.filter((item)=>item.id!=id);
+        
         await user.save();
-      return  res.status(200).json({ message: 'Item removed from cart', user: user });
+    
+      return  res.status(200).json({ message: 'Item removed from cart' });
     } catch (error) {
+        console.log(error)
        return res.status(500).json({ message: 'Server error', error });
     }
 }
@@ -87,11 +122,11 @@ const updateCart = async (req, res) => {
   
     try {
      
-      const user = await users.findOne({ mobile });
+      const user = await Users.findOne({ mobile });
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-      user.cart = user.cart.map((item) => {
+      user.cart = User.cart.map((item) => {
         if (item.id === id) {
           item.quantity = quantity; 
         }
@@ -107,20 +142,19 @@ const updateCart = async (req, res) => {
     }
   };
   
-
 const addCart=async (req, res) => {
     const { mobile, item } = req.body;
-   
+   console.log(item);
     if (!mobile || !item) {
         return res.status(400).json({ message: 'Mobile number and item details are required' });
     }
 
     try {
-        const user = await users.findOne({ mobile });
+        const user = await Users.findOne({ mobile });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-
+        
         user.cart.push(item);
 
         await user.save();
@@ -131,65 +165,135 @@ const addCart=async (req, res) => {
       return  res.status(500).json({ message: 'Server error', error });
     }
 }
-
-const payment=async (req, res) => {
-    const { mobile, payment } = req.body;
-    if (!mobile || !payment) {
-        return res.status(400).json({ message: 'Mobile number and payment details are required' });
-    }
-
-    try {
-        const user = await User.findOne({ mobile });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        user.paymentHistory.push(payment);
-        await user.save();
-        res.status(200).json({ message: 'Payment recorded', paymentHistory: user.paymentHistory });
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
-    }
-}
-const updateOrderStatus=async (req,res)=>{
-    console.log(req.body)
-    try{
-         let {mobile,cartItems,paymentId}=req.body;
-         console.log(mobile,paymentId);
-        if(!mobile||!cartItems||!paymentId)
-        {
-            return res.status(501).send({message:"invalid data",success:false});
-    }
-         let user=await users.findOne({mobile});
-         if(!user)
-            return res.status(401).send({message:"invalid user",success:false});
-            user.cart=[];
-            await user.save();
-            cartItems.map((d,key)=>{
-                user.deliveryStatus.push({...d,paymentId})
-            })
+const getCart=async (req,res)=>{
+    try
+    {
+        let mobile =req.user.mobile;
+        console.log(req.user,req.query)
+           if(!mobile)
+            return res.status(501).send({message:"invalid user ",success:false});
+         let isExist=await Users.findOne({mobile});
+      
+         if(!isExist)
+         {
            
-          await user.save();
-        return res.status(200).send({message:"delivery status successfully update",success:true});
+            return res.status(501).send({message:"invalid user ",success:false});
+         }
+         let cart=(await Users.findOne({mobile}).populate('cart.id').lean()).cart
+     cart= await cart.map((data)=>({...data,...data.id}));
+
+       
+    return res.status(200).send({message:"cart data successfully send",success:true,cart});
 
     }catch(err){
-        console.log(err);
-        return res.status(500).send({message:"error ocuur during delivery status updating",success:false});
+        console.log(err)
+      return res.status(500).send({message:"err during getCart",success:false});
     }
 }
-const updatePaymentHistory=async (req,res)=>{
-    try{
-      let {paymentId,amount,mobile}=req.body;
-      let user=await users.findOne({mobile});
-      if(!user)
-         return res.status(401).send({message:"invalid user",success:false});
-       user.paymentHistory.push({paymentId,amount});
+const addOrder = async (req, res) => {
+   // console.log(req.body);
+    try {
+      const { mobile, paymentId, amount } = req.body;
+  
+      // Validate required fields
+      if (!mobile) {
+        return res.status(400).json({ message: "Invalid data", success: false });
+      }
+  
+      // Retrieve user with the cart populated
+      const user = await Users.findOne({ mobile }).populate("cart.id");
+      if (!user) {
+        return res.status(404).json({ message: "Invalid user", success: false });
+      }
+  
+      const cartItems = user.cart;
+ // console.log(cartItems)
+     
+      const orderIds = await Promise.all(
+        cartItems.map(async (item) => {
+        
+          const newOrder = new Orders({
+            id: item.id.id,
+            price: item.id.price,
+            quantity: item.quantity,
+          });
+          await newOrder.save();
+          return newOrder._id;
+        })
+      );
+      user.Orders.push(...orderIds);
+  
+      const newPayment = new Payment({ paymentId, amount });
+      await newPayment.save();
+      user.paymentHistory.push(newPayment._id);
+     user.cart=[];
+    
       await user.save();
-    return res.status(200).send({message:"payment history updated successfully",success:true});
-    }catch(err){
-        return res.status(200).send({message:"fail to update payment history",success:false});
+  
+      return res
+        .status(200)
+        .json({ message: "Delivery status successfully updated", success: true });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        message: "Error occurred during delivery status updating",
+        success: false,
+      });
     }
-}
+  };
+  
+
+  const getOrder = async (req, res) => {
+    try {
+      const { mobile } = req.user;
+  
+      if (!mobile) {
+        return res.status(400).json({ message: "Invalid mobile number", success: false });
+      }
+  
+      // Retrieve the user and populate the 'Orders' field
+      const user = await Users.findOne({ mobile }).populate({
+        path: 'Orders',
+        populate: {
+          path: 'id', // Assuming 'id' in Orders refers to the Product
+          model: 'Product'
+        }
+      });
+  
+      if (!user) {
+        return res.status(404).json({ message: "User does not exist", success: false });
+      }
+  
+      const orderData = user.Orders;
+ 
+      return res.status(200).json({
+        message: "Your order data was successfully fetched",
+        success: true,
+        orders: orderData
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({
+        message: "An error occurred while fetching order data",
+        success: false
+      });
+    }
+  };
+  
+const getMenu=async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 8;
+      const skip = (page - 1) * limit;
+  
+      const items = await Product.find().skip(skip).limit(limit);
+      const totalItems = await Product.countDocuments();
+  
+    return  res.json({ items, totalPages: Math.ceil(totalItems / limit) });
+    } catch (error) {
+     return res.status(500).json({ error: "Failed to fetch menu." });
+    }
+  };
 const sendOtp=(req, res) => {
       const { phone } = req.body;
       if (!phone) {
@@ -212,5 +316,50 @@ const sendOtp=(req, res) => {
               res.status(500).send({ message: 'Failed to send OTP', error });
           });
   }
+  const addReview = async (req, res) => {
+    try {
+        const { comment, rating, orderId, productId } = req.body;
+        const mobile = req.user.mobile;
+        console.log("Request body:", req.body, mobile);
+
+        // Validate required fields
+        if (!orderId|| !rating) {
+            return res.status(400).send({ message: "Invalid data", success: false });
+        }
+
+       
+        const isExistUser = await Users.findOne({ mobile });
+        if (!isExistUser) {
+          console.log("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
+            return res.status(400).send({ message: "Invalid user", success: false });
+        }
+
+        const photos = req.files ? req.files.map(file => file.path) : [];
+  console.log(photos,"VABNNA")
+      
+        let newReview = new Reviews({ mobile, orderId, rating, comment,productId, photos });
+        await newReview.save();
+
+        console.log("New Review:", newReview);
+
+        
+        let isExistProduct = await Product.findOne({_id:productId});
+        if (!isExistProduct) {
+          console.log("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
+            return res.status(400).send({ message: "Invalid product ID", success: false });
+        }
+
+       
+        isExistProduct.reviews.push(newReview._id);
+        await isExistProduct.save();
+
+        return res.status(200).send({ message: "Review successfully added", success: true });
+
+    } catch (err) {
+        console.error("Error during review creation:", err);
+        return res.status(500).send({ message: "Error occurred during review creation", success: false });
+    }
+};
+
   
-module.exports={login,payment,addCart,updateCart,deleteCart,authenticateToken,profile,updateOrderStatus,updatePaymentHistory}
+module.exports={addReview,getFood,login,addCart,updateCart,deleteCart,authenticateToken,profile,addOrder,getOrder,addNewFood,getMenu,getCart};
