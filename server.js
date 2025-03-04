@@ -7,13 +7,14 @@ const mongoose = require("mongoose");
 const app = express();
 const db=require('./database');
 db();
+const Users=require('./schema/Users');
 const accountSid =process.env.ACCOUNT_SID;
 const authToken = process.env.AUTH_TOKEN;
 const twilio=require('twilio');
 const {addReview,getFood,profile,login,authenticateToken,addCart,updateCart,deleteCart,addOrder,getOrder,addNewFood,getMenu,getCart}=require('./controller');
 
 const port = 5000;
-app.use(cors()); 
+app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 let otpStore={};
 //const users=require('./schema/userSchema.js');
@@ -95,16 +96,19 @@ app.post('/logout', (req, res) => {
   });
 
   
-  app.post('/verify-otp', (req, res) => {
+  app.post('/verify-otp', async (req, res) => {
       const { phone, otp } = req.body;
-      return res.status(200).send({ message: 'OTP verified successfully',success:true });
-     console.log(phone,otp,"veri",otpStore[phone])
+      console.log(phone,otp,"veri",otpStore[phone])
       if (!phone || !otp) {
-          return res.status(400).send({ message: 'Phone number and OTP are required' });
-      }
+        return res.status(400).send({ message: 'Phone number and OTP are required' });
+    }
+     let data= await Users.findOne({mobile:phone});
+      return res.status(200).send({ message: 'OTP verified successfully',success:true ,user:data});
+     console.log(phone,otp,"veri",otpStore[phone])
+     
       if (otpStore[phone] && otpStore[phone] == otp) {
           delete otpStore[phone];
-          console.log("PPPPPPPPPPPPPPPPPPPP");
+         
          return res.status(200).send({ message: 'OTP verified successfully',success:true });
       } else {
          return res.status(400).send({ message: 'Invalid OTP or OTP expired',success:false });

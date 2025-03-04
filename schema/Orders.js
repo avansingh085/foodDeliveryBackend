@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
-// Order schema definition
 const OrderSchema = new Schema({
   id: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -36,6 +34,14 @@ const OrderSchema = new Schema({
     required: true,
     min: [0.01, 'Price must be at least 0.01'],
    
+  },
+  deliveryLocation:{
+    latitude:{
+      type:Number
+    },
+    longitude:{
+      type:Number
+    }
   },
   quantity:{
     type:Number,

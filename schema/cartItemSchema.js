@@ -29,10 +29,19 @@ const cartItemSchema = new mongoose.Schema({
       type: String,
       default: []  
     }],
+    
     sugar: { 
       type: String, 
       default: "" 
     }
-  }
+  },
+  deliveryLocation:{
+    latitude:{
+      type:Number
+    },
+    longitude:{
+      type:Number
+    }
+  },
 }, { _id: false });  
 module.exports=cartItemSchema;

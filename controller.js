@@ -51,15 +51,16 @@ const authenticateToken=async (req, res, next)=> {
     if (!token) return res.status(401).json({ message: 'Access denied' });
    
     jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+      //console.log(token,err,user,"auth");
         if (err) return res.status(403).json({ message: 'Invalid token' });
         req.user = user;
-       
+        // console.log(req.user,"auth");
         next();
     });
 }
 const profile = async (req, res) => {
     try {
-    
+      console.log(req.body,"profile",req.user);
         const User = await Users.findOne({ mobile: req.user.mobile }).lean(); 
         if (!User) {
             return res.status(404).json({ success: false, message: 'User not found' });
@@ -191,23 +192,21 @@ const getCart=async (req,res)=>{
     }
 }
 const addOrder = async (req, res) => {
-   // console.log(req.body);
+   
     try {
       const { mobile, paymentId, amount } = req.body;
   
-      // Validate required fields
       if (!mobile) {
         return res.status(400).json({ message: "Invalid data", success: false });
       }
   
-      // Retrieve user with the cart populated
       const user = await Users.findOne({ mobile }).populate("cart.id");
       if (!user) {
         return res.status(404).json({ message: "Invalid user", success: false });
       }
   
       const cartItems = user.cart;
- // console.log(cartItems)
+ 
      
       const orderIds = await Promise.all(
         cartItems.map(async (item) => {
@@ -216,6 +215,7 @@ const addOrder = async (req, res) => {
             id: item.id.id,
             price: item.id.price,
             quantity: item.quantity,
+            deliveryLocation:item.deliveryLocation
           });
           await newOrder.save();
           return newOrder._id;
@@ -360,6 +360,22 @@ const sendOtp=(req, res) => {
         return res.status(500).send({ message: "Error occurred during review creation", success: false });
     }
 };
+
+const getIncomingOrder = async (req, res) => {
+  try {
+      let data = await Orders.find({
+          statusSteps: { 
+                completed: false 
+          }
+      });
+
+  } catch (err) {
+      console.error("Error fetching incoming orders:", err);
+    
+  }
+};
+
+setInterval(()=>{getIncomingOrder();},10000)
 
   
 module.exports={addReview,getFood,login,addCart,updateCart,deleteCart,authenticateToken,profile,addOrder,getOrder,addNewFood,getMenu,getCart};
