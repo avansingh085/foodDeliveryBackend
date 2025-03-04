@@ -5,7 +5,7 @@ const paymentSchema = new mongoose.Schema(
     paymentId: {
       type: String,
       required: true,
-      unique: true, // Ensures the payment ID is unique in the collection
+      unique: true, 
     },
     amount: {
       type: Number,

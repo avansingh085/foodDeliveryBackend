@@ -21,6 +21,10 @@ const productSchema = new Schema({
     min: [0.01, 'Price must be at least 0.01'],
     set: v => Math.round(v * 100) / 100 
   },
+  typeFood:{
+     type: String,
+      default: "",
+  },
   category: {
     type: String,
     required: true,
@@ -61,6 +65,10 @@ const productSchema = new Schema({
     type: String,
    
   }],
+  offors: {
+    type: Number,
+    default: 0
+  }, 
   stock: {
     type: Number,
     min: 0,
