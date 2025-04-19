@@ -35,6 +35,10 @@ const cartItemSchema = new mongoose.Schema({
       default: "" 
     }
   },
+  totalPrice:{
+    type:Number,
+    default:0
+  },
   deliveryLocation:{
     latitude:{
       type:Number

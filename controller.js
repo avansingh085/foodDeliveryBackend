@@ -215,7 +215,9 @@ const addOrder = async (req, res) => {
             id: item.id.id,
             price: item.id.price,
             quantity: item.quantity,
-            deliveryLocation:item.deliveryLocation
+            deliveryLocation:item.deliveryLocation,
+            customization: item.customization,
+            totalPrice: item.totalPrice,
           });
           await newOrder.save();
           return newOrder._id;

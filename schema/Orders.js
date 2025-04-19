@@ -33,9 +33,37 @@ const OrderSchema = new Schema({
     type: Number,
     required: true,
     min: [0.01, 'Price must be at least 0.01'],
-   
   },
-  deliveryLocation:{
+  customization: {
+    size: { 
+      type: String, 
+      enum: ["Small", "Medium", "Large"], 
+      
+    },
+    crust: { 
+      type: String, 
+      enum: ["Classic", "Thin Crust", "Cheese Burst"], 
+      default:"Classic",
+    },
+    extraCheese: { 
+      type: Boolean, 
+      default: false 
+    },
+    toppings: [{ 
+      type: String,
+      default: []  
+    }],
+    
+    sugar: { 
+      type: String, 
+      default: ""
+    }
+  },
+  totalPrice:{
+    type:Number,
+    default:0
+  },
+    deliveryLocation:{
     latitude:{
       type:Number
     },
