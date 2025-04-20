@@ -292,7 +292,7 @@ const getMenu=async (req, res) => {
       const items = await Product.find().skip(skip).limit(limit);
       const totalItems = await Product.countDocuments();
   
-    return  res.json({ items, totalPages: Math.ceil(totalItems / limit) });
+    return  res.status(200).send({success:true, items, totalPages: Math.ceil(totalItems / limit) });
     } catch (error) {
      return res.status(500).json({ error: "Failed to fetch menu." });
     }
