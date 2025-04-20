@@ -47,14 +47,14 @@ const addNewFood=async (req,res)=>{
 
 const authenticateToken=async (req, res, next)=> {
     const token = req.headers['authorization'];
-  
+ 
     if (!token) return res.status(401).json({ message: 'Access denied' });
    
     jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
-      //console.log(token,err,user,"auth");
+     
         if (err) return res.status(403).json({ message: 'Invalid token' });
         req.user = user;
-        // console.log(req.user,"auth");
+         
         next();
     });
 }
@@ -246,6 +246,7 @@ const addOrder = async (req, res) => {
   
 
   const getOrder = async (req, res) => {
+    console.log("hellow");
     try {
       const { mobile } = req.user;
   
@@ -376,8 +377,6 @@ const getIncomingOrder = async (req, res) => {
     
   }
 };
-
-setInterval(()=>{getIncomingOrder();},10000)
 
   
 module.exports={addReview,getFood,login,addCart,updateCart,deleteCart,authenticateToken,profile,addOrder,getOrder,addNewFood,getMenu,getCart};

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-
+const Users = require("../schema/Users.js");
 const { login } = require("../controller.js");
 const twilio=require('twilio');
 const accountSid =process.env.ACCOUNT_SID;
