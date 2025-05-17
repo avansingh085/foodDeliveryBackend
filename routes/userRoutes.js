@@ -1,6 +1,6 @@
 const express=require("express");
 const router=express.Router();
-const {profile}=require("../controller");
+const {userData}=require("../controller");
 const {authenticateToken}=require("../controller");
-router.get("/profile",authenticateToken,profile);
+router.get("/user/fetchUser",authenticateToken,userData);
 module.exports=router;

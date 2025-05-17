@@ -58,16 +58,16 @@ const authenticateToken=async (req, res, next)=> {
         next();
     });
 }
-const profile = async (req, res) => {
+const userData = async (req, res) => {
     try {
-      console.log(req.body,"profile",req.user);
-        const User = await Users.findOne({ mobile: req.user.mobile }).lean(); 
+      
+        const user = await Users.findOne({ mobile: req.user.mobile }).lean(); 
         if (!User) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
         return res.status(200).json({
             message: 'Profile data retrieved successfully',
-            User,
+            user,
             success: true,
         });
     } catch (error) {
@@ -379,4 +379,4 @@ const getIncomingOrder = async (req, res) => {
 };
 
   
-module.exports={addReview,getFood,login,addCart,updateCart,deleteCart,authenticateToken,profile,addOrder,getOrder,addNewFood,getMenu,getCart};
+module.exports={addReview,getFood,login,addCart,updateCart,deleteCart,authenticateToken,userData,addOrder,getOrder,addNewFood,getMenu,getCart};

@@ -12,7 +12,7 @@ const port = 5000;
 app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const {authenticateToken, profile}=require("./controller");
+const {authenticateToken}=require("./controller");
 
 
 app.use("/uploads", express.static("uploads"));
@@ -25,7 +25,9 @@ app.use("/", require("./routes/reviewRoutes"));
 app.use("/", require("./routes/uploadRoutes"));
 
   
-app.get('/profile', authenticateToken, profile);
+app.get('/profile', authenticateToken,(req,res)=>{
+  return res.status(200).send({user:req.user,success:true})
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
