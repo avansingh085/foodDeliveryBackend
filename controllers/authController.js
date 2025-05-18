@@ -1,4 +1,8 @@
-const Users=require('./../schema/Users');
+const dotenv = require('dotenv');
+dotenv.config();
+const mongoose=require('mongoose');
+const Users=require('../schema/Users.js');
+const jwt = require('jsonwebtoken');
 const login = async (req, res) => {
     const { mobile } = req.body;
     try {
@@ -20,4 +24,5 @@ const login = async (req, res) => {
        return res.status(500).json({ message: 'Internal Server Error', error: err.message });
     }
 };
+
 module.exports={login};

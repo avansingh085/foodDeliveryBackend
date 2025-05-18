@@ -1,18 +1,14 @@
 const express = require("express");
-const multer = require("multer");
 require('dotenv').config();
-const path = require("path");
 const cors = require("cors");
-const mongoose = require("mongoose");
 const app = express();
-const db=require('./database');
+const db=require('./lib/database');
 db();
-const Users=require('./schema/Users');
 const port = 5000;
 app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const {authenticateToken}=require("./controller");
+const authenticateToken=require("./middilwares/auth.middilwares");
 
 
 app.use("/uploads", express.static("uploads"));
