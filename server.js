@@ -9,6 +9,7 @@ app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const authenticateToken=require("./middilwares/auth.middilwares");
+const Users = require("./schema/Users");
 
 
 app.use("/uploads", express.static("uploads"));
@@ -21,8 +22,9 @@ app.use("/", require("./routes/reviewRoutes"));
 app.use("/", require("./routes/uploadRoutes"));
 
   
-app.get('/profile', authenticateToken,(req,res)=>{
-  return res.status(200).send({user:req.user,success:true})
+app.get('/profile', authenticateToken,async (req,res)=>{
+let user=await Users.findOne({mobile:req?.user?.mobile});
+  return res.status(200).send({user,success:true})
 });
 
 app.listen(port, () => {

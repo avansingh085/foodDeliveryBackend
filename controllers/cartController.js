@@ -3,22 +3,23 @@ dotenv.config();
 const mongoose=require('mongoose');
 const Users=require('../schema/Users.js');
 const deleteCart=  async (req, res) => {
-    let { mobile, id } = req.body;
-    id=id._id;
+  
+  try {  let { mobile, id } = req.body;
   
     if (!mobile || !id) {
         return res.status(400).json({ message: 'Mobile number and item ID are required' });
     }
-    try {
+    
         const user = await Users.findOne({ mobile });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        user.cart = user.cart.filter((item)=>item.id!=id);
-        
+        const cart=user.cart;
+        const newCart= cart?.filter((item)=>String(item.id)!==String(id));
+        user.cart=newCart;
         await user.save();
-    
-      return  res.status(200).json({ message: 'Item removed from cart' });
+        
+      return  res.status(200).json({ message: 'Item removed from cart' ,user});
     } catch (error) {
         console.log(error)
        return res.status(500).json({ message: 'Server error', error });
@@ -33,17 +34,20 @@ const updateCart = async (req, res) => {
     try {
      
       const user = await Users.findOne({ mobile });
+     
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-      user.cart = User.cart.map((item) => {
-        if (item.id === id) {
-          item.quantity = quantity; 
-        }
-        return item; 
-      });
-  
-      await user.save();
+      const cart=user.cart;
+     const updatedCart = cart.map((item) => {
+  if (String(item.id) === String(id)) {
+    return { ...item, quantity }; 
+  }
+  return item;
+});
+
+user.cart = updatedCart;
+await user.save();
   
       return res.status(200).json({ message: 'Item quantity updated', user: user });
     } catch (error) {
@@ -90,7 +94,7 @@ const getCart=async (req,res)=>{
             return res.status(501).send({message:"invalid user ",success:false});
          }
          let cart=(await Users.findOne({mobile}).populate('cart.id').lean()).cart
-     cart= await cart.map((data)=>({...data,...data.id}));
+     cart= await cart?.map((data)=>({...data,...data.id}));
 
        
     return res.status(200).send({message:"cart data successfully send",success:true,cart});
